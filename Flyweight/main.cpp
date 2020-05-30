@@ -85,7 +85,7 @@ private:
     };
     
 public:
-    FlyweightFactory(vector<SharedState> sharedStates) {
+    FlyweightFactory(vector<SharedState> & sharedStates) {
         for (SharedState & sharedState: sharedStates) {
             this->flyweights[hash(sharedState)] = Flyweight(&sharedState);
         }
@@ -124,6 +124,11 @@ public:
         auto sharedState = SharedState(brand, model, color);
         flyweight = flyweightFactory->getFlyweight(sharedState);
     }
+    
+    friend ostream & operator<<(ostream & destination, const Car & source) {
+        destination << source.uniqueState.owner << " " <<  source.uniqueState.plates << " " <<  source.flyweight->getSharedState()->brand << " " << source.flyweight->getSharedState()->model;
+        return destination;
+    }
 };
 
 class CarBuilder {
@@ -146,6 +151,11 @@ public:
     
     void setOwner(string owner) {
         this->owner = owner;
+        auto sum = 0;
+        for (char & character: owner) {
+            sum += character;
+        }
+        this->plates = to_string(sum);
     }
     
     void setTripComputer(string tripComputer) {
@@ -203,7 +213,8 @@ public:
 
 
 int main(int argc, const char * argv[]) {
-    auto flyweightFactory = FlyweightFactory({});
+    vector<SharedState> sharedStates;
+    auto flyweightFactory = FlyweightFactory(sharedStates);
     auto combustionCarBuilder = CombustionCarBuilder(&flyweightFactory);
     auto electroCarBuilder = ElectroCarBuilder(&flyweightFactory);
     
@@ -212,7 +223,8 @@ int main(int argc, const char * argv[]) {
         combustionCarBuilder.toggleAutopilot();
         combustionCarBuilder.setOwner("Person " + to_string(i));
         combustionCarBuilder.setTripComputer("CarPlay");
-        combustionCarBuilder.build();
+        auto car = combustionCarBuilder.build();
+        cout << *car << endl;
     };
     
     flyweightFactory.listFlyweights();
@@ -222,12 +234,14 @@ int main(int argc, const char * argv[]) {
         electroCarBuilder.toggleAutopilot();
         electroCarBuilder.setOwner("Person " + to_string(i));
         electroCarBuilder.setTripComputer("Tesla");
-        electroCarBuilder.build();
+        auto car = electroCarBuilder.build();
+        cout << *car << endl;
     }
     
     flyweightFactory.listFlyweights();
     
     auto car = Car(&flyweightFactory, "Toyota", "Prius", "White");
+    cout << car << endl;
     
     flyweightFactory.listFlyweights();
     
